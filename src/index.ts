@@ -7,8 +7,22 @@ class Block {
   public data: string;
   public timestamp: number;
 
-  static calculateBlockHash = (index:number, data:string, timestamp:number, previousHash:string):string => {
-    return CryptoJS.SHA256(index + data + timestamp + previousHash).toString;
+  // Hash 값 계산  
+  static calculateBlockHash = (
+    index:number,
+    data:string, 
+    timestamp:number, 
+    previousHash:string):string => CryptoJS.SHA256(index + data + timestamp + previousHash).toString();
+
+  // Block 구조 유효성 검사
+  static validateStrucure = (aBlock:Block) : boolean => {
+    if(typeof aBlock.index === "number" && 
+    typeof aBlock.data === "string" && 
+    typeof aBlock.previousHash === "string" &&
+    typeof aBlock.hash === "string" &&
+    typeof aBlock.timestamp === "number")
+    return true;
+  return false;
   }
 
   constructor(
@@ -32,18 +46,26 @@ const getBlockchain:Block[] = blockChain;
 const getLatestBlock: Block = getBlockchain[getBlockchain.length - 1];
 const getNewTimestamp: number = Math.round(new Date().getTime() / 1000);
 
-// create next block fn
+// create next block
 const createNewBlock = (data:string) : Block => {
   const previousBlock:Block = getLatestBlock;
   const newIndex:number = previousBlock.index + 1;
-  const previousHash = previousBlock.hash;
-  const newTimestamp = getNewTimestamp;
+  const previousHash:string = previousBlock.hash;
+  const newTimestamp:number = getNewTimestamp;
   const newHash:string = Block.calculateBlockHash(newIndex, data, newTimestamp, previousHash);
 
   const newBlock:Block = new Block(newIndex, newHash, previousHash, data, newTimestamp);
   return newBlock;
 }
 
+// validate new block
+const isBlockValid = (candidateBlock:Block, previousBlock:Block) : boolean => {
+if(Block.validateStrucure(candidateBlock) ||
+  candidateBlock.previousHash !== previousBlock.hash || 
+  candidateBlock.index !== previousBlock.index + 1
+  ) return false;
+  return true;
+}
+
 console.log(createNewBlock('1234fff'));
-console.log(createNewBlock('ijdks'));
 
